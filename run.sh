@@ -4,9 +4,18 @@
 #
 # 2017-08-14 Nereu
 
+#
+# A list of servers, it will be inserted in database before the inventory
+#
 SERVERS="py 192.168.10.138 test"
+
+#
+# inventory.py will connect in servers using SSH using the current user and keys,
+# so you should test your connect wth the server before run this script.
+# Using the list above as an example, you should issue a "ssh 192.169.10.138 uptime"
+# to confirm that your SSH key is working.
 
 mysql -vv <inventory.sql && \
 for h in $(echo $SERVERS) ; do mysql -vv inventory -e "insert into host_list values ('${h}')" ; done && \
-python -i inventory.py
+python inventory.py
 
