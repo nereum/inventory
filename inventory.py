@@ -5,8 +5,9 @@
 
     Script que faz a coleta de informacoes dos servidores Red Hat/CentOS
 
-    2017-08-10 - Nereu - 1a version
-    2017-08-14 - Nereu - a lot of modifications
+    2017-08-10 - Nereu - 1st version
+    2017-08-14 - Nereu - rewritten everything
+    2017-08-15 - Nereu - more fixes
 
 """
 
@@ -52,14 +53,15 @@ def Initialize():
   print('\n. Initialize')
 
   if c.execute('select host_name from host_list order by 1'):
-    for r in c.fetchall(): hosts.append(r[0])
+    for h in c.fetchall():
+      hosts.append(h[0])
   else:
-    print('Error, host_list table empty!')
+    print('  Error: table host_list is empty!\n')
+    sys.exit(1)
 
   for h in hosts:
-    t={}
-    for cmd in commands: t[cmd]=''
-    output[h]=t
+    output[h]=dict()
+    for cmd in commands: output[h][cmd]=''
 
   return
 
@@ -78,7 +80,6 @@ def Extract():
   for h in hosts:
     try:
       print('  . %s...' % ( h, ) )
-      #ssh.connect(h, username='nereu',key_filename='/home/nereu/.ssh/id_rsa',timeout=2)
 
       ssh.connect(h, username=os.getlogin(),key_filename=os.path.expanduser('~/.ssh/id_rsa'),timeout=2)
 
@@ -87,8 +88,8 @@ def Extract():
       for col,cmd in commands.items():
         try:
           ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd)
-          output[h][col]=''.join(ssh_stdout.readlines())
-          output[h][col]=output[h][col].rstrip()
+          output[h][col]=''.join(ssh_stdout.readlines()).rstrip()
+          #output[h][col]=output[h][col].rstrip()
         except:
           print('    Error: SSH exec(%s) cmd=[%s]' % (h,cmd) )
           output[h][col]=''
@@ -227,8 +228,9 @@ Initialize()
 
 Extract()
 
-Dump_Json('inventory_extracted.json')
+#Dump_Json('inventory_extracted.json')
 
+#Debug
 #output=Load_Json('inventory_extracted.json')
 
 Transform()

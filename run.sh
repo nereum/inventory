@@ -4,10 +4,12 @@
 #
 # 2017-08-14 Nereu
 
+#DEBUG='-i'
+
 #
 # A list of servers, it will be inserted in database before the inventory
 #
-SERVERS="py 192.168.10.138 test"
+SERVERS="192.168.10.137 192.168.10.139 test"
 
 #
 # inventory.py will connect in servers using SSH using the current user and keys,
@@ -17,5 +19,5 @@ SERVERS="py 192.168.10.138 test"
 
 mysql -vv <inventory.sql && \
 for h in $(echo $SERVERS) ; do mysql -vv inventory -e "insert into host_list values ('${h}')" ; done && \
-python inventory.py
+python ${DEBUG} inventory.py
 
