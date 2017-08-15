@@ -11,9 +11,9 @@ This script is part of my Python's programming study.
 The script depends on:
 
  * Python
- * MySQL database
  * module pymysql
- * module
+ * module paramiko
+ * MySQL database
 
 ### Usage
 
