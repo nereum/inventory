@@ -1,10 +1,10 @@
 # Inventory
 
-Script in Python that creates and load a MySQL database with a inventory of Red Hat/CentOS servers
+Script in Python to create an inventory of Red Hat/CentOS servers.
 
 ## Getting Started
 
-This script is part of my Python's programming study.
+This script is part of my Python's programming study. 
 
 ### Prerequisites
 
@@ -54,7 +54,7 @@ Inventory ------------------------------------------------------------
 
 ----------------------------------------------------------------------
 
-```
+``` 
 
 ## Author
 
