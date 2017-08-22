@@ -66,6 +66,20 @@ create table groups (
    primary key(host_name,group_name)
  ) engine MyISAM charset=utf8;
 
+drop table if exists processes;
+
+create table processes (
+   host_name   varchar(64) not null,
+   pid         int,
+   uid         bigint,
+   ppid        int,
+   start_time  varchar(32),
+   vsize       bigint,
+   rss         bigint,
+   size        bigint,
+   cmd         text,
+   primary key(host_name,pid)
+) engine MyISAM charset=utf8;
 
 drop table if exists netstat;
 

@@ -16,6 +16,7 @@ import json
 import os
 import paramiko
 import pymysql
+import re
 import sys
 
 dt_begin=datetime.datetime.now()
@@ -31,7 +32,8 @@ commands={
   'cpuinfo'     : 'cat /proc/cpuinfo',
   'cpumodel'    : "grep 'model name' /proc/cpuinfo",
   'meminfo'     : "cat /proc/meminfo",
-  'ps'          : 'ps fax --columns=1024',
+# 'ps'          : 'ps fax --columns=1024',
+  'ps'          : "ps -Ao 'pid,uid,ppid,start_time,vsize,rss,size,cmd'",
   'sockstat'    : 'cat /proc/net/sockstat',
   'netstat_tcp' : 'netstat -ant',
   'netstat_udp' : 'netstat -anu',
@@ -147,6 +149,15 @@ def Transform():
     if len(output[h]['packages']):
       output[h]['packages']=[ p.split(',') for p in output[h]['packages'].split('\n') ]
 
+    #Processes
+    output[h]['processes']=list()
+    for l in output[h]['ps'].split('\n')[1:]:
+     ll=re.split('\s+',l.strip())
+     cmd=' '.join(ll[7:])
+     ll=ll[0:7]
+     ll.append(cmd)
+     output[h]['processes'].append(ll)
+
     # Tcp
     tcp=[]
     if len(output[h]['netstat_tcp']):
@@ -209,12 +220,13 @@ def Load():
 
     c.execute('insert into hosts values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', output[h]['hosts'] )
 
-    c.executemany('insert into meminfo  values (%s,%s,%s,%s)',             [ [ h ] + m for m in output[h]['meminfo'] ] )
-    c.executemany('insert into users    values (%s,%s,%s,%s,%s,%s,%s,%s)', [ [ h ] + u for u in output[h]['users'] ] )
-    c.executemany('insert into groups   values (%s,%s,%s,%s,%s)',          [ [ h ] + g for g in output[h]['groups'] ] )
-    c.executemany('insert into packages values (%s,%s,%s,%s,%s)',          [ [ h ] + p for p in output[h]['packages'] ] )
-    c.executemany('insert into netstat  values (%s,%s,%s,%s)',             [ [ h, 'tcp' ] + t for t in output[h]['tcp'] ] )
-    c.executemany('insert into netstat  values (%s,%s,%s,%s)',             [ [ h, 'udp' ] + u for u in output[h]['udp'] ] )
+    c.executemany('insert into meminfo   values (%s,%s,%s,%s)',               [ [ h ] + m for m in output[h]['meminfo'] ] )
+    c.executemany('insert into users     values (%s,%s,%s,%s,%s,%s,%s,%s)',   [ [ h ] + u for u in output[h]['users'] ] )
+    c.executemany('insert into groups    values (%s,%s,%s,%s,%s)',            [ [ h ] + g for g in output[h]['groups'] ] )
+    c.executemany('insert into packages  values (%s,%s,%s,%s,%s)',            [ [ h ] + p for p in output[h]['packages'] ] )
+    c.executemany('insert into netstat   values (%s,%s,%s,%s)',               [ [ h, 'tcp' ] + t for t in output[h]['tcp'] ] )
+    c.executemany('insert into netstat   values (%s,%s,%s,%s)',               [ [ h, 'udp' ] + u for u in output[h]['udp'] ] )
+    c.executemany('insert into processes values (%s,%s,%s,%s,%s,%s,%s,%s,%s)',[ [ h ] + p for p in output[h]['processes'] ] )
 
   c.execute('insert into inventory values ( %s, %s )', ( dt_begin, datetime.datetime.now() ) )
 
