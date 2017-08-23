@@ -73,7 +73,6 @@ create table processes (
    pid         int,
    uid         bigint,
    ppid        int,
-   start_time  varchar(32),
    vsize       bigint,
    rss         bigint,
    size        bigint,
@@ -87,15 +86,33 @@ create table netstat (
    host_name  varchar(64) not null,
    protocol   varchar(8)  not null,
    bind       varchar(32) not null,
-   port       varchar(5)  not null,
+   port       int         not null,
    index host_proto_port(host_name,protocol,port)
 ) engine MyISAM charset=utf8;
+
+drop table if exists ports;
+
+create table ports (
+  protocol varchar(8) not null,
+  port     int not null,
+  program  varchar(255),
+  primary key(protocol,port)
+) engine MyISAM charset=utf8;
+
+insert into ports values 
+('tcp',   22, 'sshd'),
+('tcp',   80, 'httpd'),
+('tcp',  443, 'https'),
+('tcp', 3306, 'MySQL'),
+('udp',   68, 'dhcpd'),
+('udp',  514, 'syslogd')
+;
 
 drop table if exists packages;
 
 create table packages (
   host_name       varchar(64) not null,
-  package_name    varchar(64) null,
+  package_name    varchar(64) not null,
   package_version varchar(32) null,
   package_release varchar(32) null,
   package_arch    varchar(8)  null,

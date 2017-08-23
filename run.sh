@@ -4,12 +4,13 @@
 #
 # 2017-08-14 Nereu
 
-#DEBUG='-i'
+DEBUG='-i'
 
 #
 # A list of servers, it will be inserted in database before the inventory
 #
 SERVERS="192.168.10.137 192.168.10.139 test"
+SERVERS="192.168.10.137"
 
 #
 # inventory.py will connect in servers using SSH using the current user and keys,

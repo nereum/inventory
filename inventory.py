@@ -8,6 +8,7 @@
     2017-08-10 - Nereu - 1st version
     2017-08-14 - Nereu - rewritten everything
     2017-08-15 - Nereu - more fixes
+    2017-08-21 - Nereu - table processes
 
 """
 
@@ -32,8 +33,7 @@ commands={
   'cpuinfo'     : 'cat /proc/cpuinfo',
   'cpumodel'    : "grep 'model name' /proc/cpuinfo",
   'meminfo'     : "cat /proc/meminfo",
-# 'ps'          : 'ps fax --columns=1024',
-  'ps'          : "ps -Ao 'pid,uid,ppid,start_time,vsize,rss,size,cmd'",
+  'ps'          : "ps -Ao 'pid,uid,ppid,vsize,rss,size,cmd'",
   'sockstat'    : 'cat /proc/net/sockstat',
   'netstat_tcp' : 'netstat -ant',
   'netstat_udp' : 'netstat -anu',
@@ -81,7 +81,7 @@ def Extract():
 
   for h in hosts:
     try:
-      print('  . %s...' % ( h, ) )
+      print('  . %s' % ( h, ) )
 
       ssh.connect(h, username=os.getlogin(),key_filename=os.path.expanduser('~/.ssh/id_rsa'),timeout=2)
 
@@ -127,7 +127,7 @@ def Transform():
 
   print('\n. Transform')
   for h in output.keys():
-    print('  . %s...' % ( h, ) )
+    print('  . %s' % ( h, ) )
 
     # Meminfo
     if len(output[h]['meminfo']):
@@ -153,8 +153,8 @@ def Transform():
     output[h]['processes']=list()
     for l in output[h]['ps'].split('\n')[1:]:
      ll=re.split('\s+',l.strip())
-     cmd=' '.join(ll[7:])
-     ll=ll[0:7]
+     cmd=' '.join(ll[6:])
+     ll=ll[0:6]
      ll.append(cmd)
      output[h]['processes'].append(ll)
 
@@ -216,17 +216,15 @@ def Load():
   print('\n. Load')
 
   for h in output.keys():
-    print('  . %s...' % ( h, ) )
-
+    print('  . %s' % ( h, ) )
     c.execute('insert into hosts values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', output[h]['hosts'] )
-
-    c.executemany('insert into meminfo   values (%s,%s,%s,%s)',               [ [ h ] + m for m in output[h]['meminfo'] ] )
-    c.executemany('insert into users     values (%s,%s,%s,%s,%s,%s,%s,%s)',   [ [ h ] + u for u in output[h]['users'] ] )
-    c.executemany('insert into groups    values (%s,%s,%s,%s,%s)',            [ [ h ] + g for g in output[h]['groups'] ] )
-    c.executemany('insert into packages  values (%s,%s,%s,%s,%s)',            [ [ h ] + p for p in output[h]['packages'] ] )
-    c.executemany('insert into netstat   values (%s,%s,%s,%s)',               [ [ h, 'tcp' ] + t for t in output[h]['tcp'] ] )
-    c.executemany('insert into netstat   values (%s,%s,%s,%s)',               [ [ h, 'udp' ] + u for u in output[h]['udp'] ] )
-    c.executemany('insert into processes values (%s,%s,%s,%s,%s,%s,%s,%s,%s)',[ [ h ] + p for p in output[h]['processes'] ] )
+    c.executemany('insert into meminfo   values (%s,%s,%s,%s)',            [ [ h ] + m for m in output[h]['meminfo'] ] )
+    c.executemany('insert into users     values (%s,%s,%s,%s,%s,%s,%s,%s)',[ [ h ] + u for u in output[h]['users'] ] )
+    c.executemany('insert into groups    values (%s,%s,%s,%s,%s)',         [ [ h ] + g for g in output[h]['groups'] ] )
+    c.executemany('insert into packages  values (%s,%s,%s,%s,%s)',         [ [ h ] + p for p in output[h]['packages'] ] )
+    c.executemany('insert into netstat   values (%s,%s,%s,%s)',            [ [ h, 'tcp' ] + t for t in output[h]['tcp'] ] )
+    c.executemany('insert into netstat   values (%s,%s,%s,%s)',            [ [ h, 'udp' ] + u for u in output[h]['udp'] ] )
+    c.executemany('insert into processes values (%s,%s,%s,%s,%s,%s,%s,%s)',[ [ h ] + p for p in output[h]['processes'] ] )
 
   c.execute('insert into inventory values ( %s, %s )', ( dt_begin, datetime.datetime.now() ) )
 
