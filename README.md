@@ -5,6 +5,7 @@ Script in Python to create an inventory of Red Hat/CentOS servers.
 ## Getting Started
 
 This script is part of my Python's programming study.
+
 This version is a POC and should not be used in a production environment.
 
 ### Prerequisites
