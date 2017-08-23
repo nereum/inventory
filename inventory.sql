@@ -70,13 +70,13 @@ drop table if exists processes;
 
 create table processes (
    host_name   varchar(64) not null,
-   pid         int,
-   uid         bigint,
-   ppid        int,
-   vsize       bigint,
-   rss         bigint,
-   size        bigint,
-   cmd         text,
+   pid         int             null, -- process ID 
+   uid         bigint          null, -- user ID number
+   ppid        int             null, -- parent process ID
+   vsize       bigint          null, -- total VM size in kB
+   rss         bigint          null, -- resident set size
+   size        bigint          null, -- memory size in kilobytes
+   cmd         text            null, -- simple name of executable
    primary key(host_name,pid)
 ) engine MyISAM charset=utf8;
 
