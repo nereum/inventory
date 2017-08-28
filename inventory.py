@@ -28,19 +28,22 @@ c=db.cursor()
 
 commands={
   'is_vm'       : "/sbin/ip link show | grep -q ' 00:0c:29:' && echo 'YES' || echo 'NO'",
-  'version'     : 'cat /etc/redhat-release',
-  'uptime'      : 'uptime',
-  'cpuinfo'     : 'cat /proc/cpuinfo',
-  'cpumodel'    : "grep 'model name' /proc/cpuinfo",
-  'meminfo'     : "cat /proc/meminfo",
-  'ps'          : "ps -Ao 'pid,uid,ppid,vsize,rss,size,cmd'",
-  'sockstat'    : 'cat /proc/net/sockstat',
-  'netstat_tcp' : 'netstat -ant',
-  'netstat_udp' : 'netstat -anu',
-  'lsblk'       : 'test -e /bin/lsblk && /bin/lsblk',
-  'users'       : 'cat /etc/passwd',
-  'groups'      : 'cat /etc/group',
-  'packages'    : 'rpm -qa --queryformat "%{NAME},%{VERSION},%{RELEASE},%{ARCH}\n"',
+  'version'     : '/bin/cat /etc/redhat-release',
+  'uptime'      : '/usr/bin/uptime',
+  'cpuinfo'     : '/bin/cat /proc/cpuinfo',
+  'cpumodel'    : "/bin/grep 'model name' /proc/cpuinfo",
+  'meminfo'     : "/bin/cat /proc/meminfo",
+  'hostname'    : '/bin/hostname',
+  'arch'        : '/usr/bin/test -e /bin/arch && /bin/arch',
+  'ps'          : "/bin/ps -Ao 'pid,uid,ppid,vsize,rss,size,cmd'",
+  'sockstat'    : '/bin/cat /proc/net/sockstat',
+  'netstat_tcp' : '/bin/netstat -ant',
+  'netstat_udp' : '/bin/netstat -anu',
+  'lsblk'       : '/usr/bin/test -e /bin/lsblk && /bin/lsblk',
+  'users'       : '/bin/cat /etc/passwd',
+  'groups'      : '/bin/cat /etc/group',
+  'packages'    : '/bin/rpm -qa --queryformat "%{NAME},%{VERSION},%{RELEASE},%{ARCH}\n"',
+  'sysctl'      : '/sbin/sysctl -a',
 }
 
 hosts=[]
@@ -149,7 +152,7 @@ def Transform():
     if len(output[h]['packages']):
       output[h]['packages']=[ p.split(',') for p in output[h]['packages'].split('\n') ]
 
-    #Processes
+    # Processes
     output[h]['processes']=list()
     for l in output[h]['ps'].split('\n')[1:]:
      ll=re.split('\s+',l.strip())
@@ -157,6 +160,9 @@ def Transform():
      ll=ll[0:6]
      ll.append(cmd)
      output[h]['processes'].append(ll)
+
+    # Sysctl
+    output[h]['kernel_params']=[ re.split('\s*=\s*',l) for l in output[h]['sysctl'].strip().split('\n') ]
 
     # Tcp
     tcp=[]
@@ -201,6 +207,8 @@ def Transform():
       minor,
       cpumodel,
       procs,
+      output[h]['hostname'],
+      output[h]['arch'],
       output[h]['uptime'],
       output[h]['ps'],
       output[h]['sockstat'],
@@ -217,7 +225,7 @@ def Load():
 
   for h in output.keys():
     print('  . %s' % ( h, ) )
-    c.execute('insert into hosts values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', output[h]['hosts'] )
+    c.execute('insert into hosts values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', output[h]['hosts'] )
     c.executemany('insert into meminfo   values (%s,%s,%s,%s)',            [ [ h ] + m for m in output[h]['meminfo'] ] )
     c.executemany('insert into users     values (%s,%s,%s,%s,%s,%s,%s,%s)',[ [ h ] + u for u in output[h]['users'] ] )
     c.executemany('insert into groups    values (%s,%s,%s,%s,%s)',         [ [ h ] + g for g in output[h]['groups'] ] )
@@ -225,6 +233,7 @@ def Load():
     c.executemany('insert into netstat   values (%s,%s,%s,%s)',            [ [ h, 'tcp' ] + t for t in output[h]['tcp'] ] )
     c.executemany('insert into netstat   values (%s,%s,%s,%s)',            [ [ h, 'udp' ] + u for u in output[h]['udp'] ] )
     c.executemany('insert into processes values (%s,%s,%s,%s,%s,%s,%s,%s)',[ [ h ] + p for p in output[h]['processes'] ] )
+    c.executemany('insert into kernel_params values (%s,%s,%s)'           ,[ [ h ] + s for s in output[h]['kernel_params'] ] )
 
   c.execute('insert into inventory values ( %s, %s )', ( dt_begin, datetime.datetime.now() ) )
 

@@ -24,10 +24,12 @@ create table hosts (
   version_minor varchar(16)  null,
   cpumodel      varchar(255) null,
   procs         int          null,
+  hostname      varchar(255) null,
+  arch          varchar(16)  null,
   uptime        varchar(255) null,
-  ps_output     text null,
-  sockstat      text null,
-  lsblk_output  text null,
+  ps_output     text         null,
+  sockstat      text         null,
+  lsblk_output  text         null,
   primary key(host_name)
 ) engine MyISAM charset=utf8;
 
@@ -78,6 +80,15 @@ create table processes (
    size        bigint          null, -- memory size in kilobytes
    cmd         text            null, -- simple name of executable
    primary key(host_name,pid)
+) engine MyISAM charset=utf8;
+
+drop table if exists kernel_params;
+
+create table kernel_params (
+   host_name   varchar(64) not null,
+   param_name  varchar(64) not null,
+   param_value text null,
+   index host_parname(host_name,param_name)
 ) engine MyISAM charset=utf8;
 
 drop table if exists netstat;
