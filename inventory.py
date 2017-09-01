@@ -28,7 +28,7 @@ c=db.cursor()
 
 commands={
   'is_vm'       : "/sbin/ip link show | grep -q ' 00:0c:29:' && echo 'YES' || echo 'NO'",
-  'version'     : '/bin/cat /etc/redhat-release',
+  'version'     : "/bin/cat /etc/system-release || /bin/cat /etc/redhat-release || echo 'Unkown'",
   'uptime'      : '/usr/bin/uptime',
   'cpuinfo'     : '/bin/cat /proc/cpuinfo',
   'cpumodel'    : "/bin/grep 'model name' /proc/cpuinfo",
@@ -183,12 +183,17 @@ def Transform():
     output[h]['udp']=udp
 
     # Hosts
-    if len(output[h]['version'].split()) == 4:
-      (distro, _, major_minor, _) = output[h]['version'].split() if len(output[h]['version'].split())==4 else ('','','.','')
-      (major, minor)=major_minor.split('.') if len(major_minor.split('.'))==2 else ( '', '' )
+    distro=output[h]['version'].split(' ')[0]
+    v=re.search(r'([0-9\.]+)',output[h]['version'])
+    if v:
+      if '.' in v.group(0):
+        (major,*minor)=v.group(0).split('.')
+      else:
+        major=v.group(0)
+        minor=''
     else:
-      ( distro, major, minor ) = ('', '', '')
-
+      ( major, minor ) = ('','')
+  
     if len(output[h]['cpumodel']):
       cpumodel=output[h]['cpumodel'].split('\n')
       procs=len(cpumodel)
