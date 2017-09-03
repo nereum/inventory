@@ -162,7 +162,7 @@ def Transform():
      output[h]['processes'].append(ll)
 
     # Sysctl
-    output[h]['kernel_params']=[ re.split('\s*=\s*',l) for l in output[h]['sysctl'].strip().split('\n') ]
+    output[h]['kernel_params']=[ re.split('\s*=\s*',l) for l in output[h]['sysctl'].strip().split('\n') if '=' in l ]
 
     # Tcp
     tcp=[]

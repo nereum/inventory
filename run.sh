@@ -4,7 +4,7 @@
 #
 # 2017-08-14 Nereu
 
-#DEBUG='-i'
+DEBUG='-i'
 
 #
 # A list of servers, it will be inserted in database before the inventory
